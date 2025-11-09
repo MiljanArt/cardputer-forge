@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-export interface DeviceInfo {
-  firmwareVersion: string;
-  deviceName: string;
-  platform: string;
-  status: 'Idle' | 'Flashing' | 'Configuring';
-}
-export interface DeviceState {
-  isSupported: boolean;
+
+
+
+interface SerialPort {
+  id?: string | number;
+
+  [key: string]: unknown;
+}interface SerialPort {id?: string | number;[key: string]: unknown;}export interface DeviceInfo {firmwareVersion: string;deviceName: string;platform: string;status: 'Idle' | 'Flashing' | 'Configuring';}export interface DeviceState {isSupported: boolean;
   isConnected: boolean;
   isConnecting: boolean;
   port: SerialPort | null;
@@ -38,12 +38,12 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set) => ({
           isConnecting: false,
           isConnected: true,
           port,
-          deviceInfo: { // Mock data for now
+          deviceInfo: {
             firmwareVersion: '1.0.0-adv',
             deviceName: 'Cardputer-ABCD',
             platform: 'ESP32-S3',
-            status: 'Idle',
-          },
+            status: 'Idle'
+          }
         });
         break;
       case 'disconnected':
@@ -53,5 +53,5 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set) => ({
   },
   setDeviceInfo: (info) => set({ deviceInfo: info }),
   addConsoleOutput: (line) => set((state) => ({ consoleOutput: [...state.consoleOutput, line] })),
-  clearConsole: () => set({ consoleOutput: [] }),
+  clearConsole: () => set({ consoleOutput: [] })
 }));
