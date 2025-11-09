@@ -6,6 +6,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
+          'Sora',
   				'Inter',
   				'-apple-system',
   				'BlinkMacSystemFont',
