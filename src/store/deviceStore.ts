@@ -1,17 +1,25 @@
 import { create } from 'zustand';
-
-
-
-interface SerialPort {
-  id?: string | number;
-
+// Note: The full SerialPort type is defined in src/types/web-serial.d.ts
+// We use a simpler interface here for store state to avoid circular dependencies
+// and to only store what's necessary. The actual port object will have more methods.
+interface StoredSerialPort {
   [key: string]: unknown;
-}interface SerialPort {id?: string | number;[key: string]: unknown;}export interface DeviceInfo {firmwareVersion: string;deviceName: string;platform: string;status: 'Idle' | 'Flashing' | 'Configuring';}export interface DeviceState {isSupported: boolean;
+}
+export interface DeviceInfo {
+  firmwareVersion: string;
+  deviceName: string;
+  platform: string;
+  status: 'Idle' | 'Flashing' | 'Configuring';
+}
+export interface DeviceState {
+  isSupported: boolean;
   isConnected: boolean;
   isConnecting: boolean;
   port: SerialPort | null;
   deviceInfo: DeviceInfo | null;
   consoleOutput: string[];
+  flashingProgress: number;
+  flashingStatus: string;
 }
 export interface DeviceActions {
   setIsSupported: (isSupported: boolean) => void;
@@ -19,14 +27,19 @@ export interface DeviceActions {
   setDeviceInfo: (info: DeviceInfo | null) => void;
   addConsoleOutput: (line: string) => void;
   clearConsole: () => void;
+  setFlashingProgress: (progress: number) => void;
+  setFlashingStatus: (status: string) => void;
+  updateDeviceStatus: (status: DeviceInfo['status']) => void;
 }
-export const useDeviceStore = create<DeviceState & DeviceActions>((set) => ({
+export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => ({
   isSupported: 'serial' in navigator,
   isConnected: false,
   isConnecting: false,
   port: null,
   deviceInfo: null,
   consoleOutput: [],
+  flashingProgress: 0,
+  flashingStatus: 'Ready to flash.',
   setIsSupported: (isSupported) => set({ isSupported }),
   setConnectionState: (state, port = null) => {
     switch (state) {
@@ -53,5 +66,13 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set) => ({
   },
   setDeviceInfo: (info) => set({ deviceInfo: info }),
   addConsoleOutput: (line) => set((state) => ({ consoleOutput: [...state.consoleOutput, line] })),
-  clearConsole: () => set({ consoleOutput: [] })
+  clearConsole: () => set({ consoleOutput: [] }),
+  setFlashingProgress: (progress) => set({ flashingProgress: progress }),
+  setFlashingStatus: (status) => set({ flashingStatus: status }),
+  updateDeviceStatus: (status) => {
+    const { deviceInfo } = get();
+    if (deviceInfo) {
+      set({ deviceInfo: { ...deviceInfo, status } });
+    }
+  },
 }));
