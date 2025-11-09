@@ -42,6 +42,7 @@ export interface DeviceActions {
   setFetchingConfig: (isFetching: boolean) => void;
   setSavingConfig: (isSaving: boolean) => void;
 }
+const CONSOLE_HISTORY_LIMIT = 200;
 export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => ({
   isSupported: 'serial' in navigator,
   isConnected: false,
@@ -74,12 +75,12 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => 
         });
         break;
       case 'disconnected':
-        set({ isConnecting: false, isConnected: false, port: null, deviceInfo: null, config: null });
+        set({ isConnecting: false, isConnected: false, port: null, deviceInfo: null, config: null, consoleOutput: [] });
         break;
     }
   },
   setDeviceInfo: (info) => set({ deviceInfo: info }),
-  addConsoleOutput: (line) => set((state) => ({ consoleOutput: [...state.consoleOutput, line] })),
+  addConsoleOutput: (line) => set((state) => ({ consoleOutput: [...state.consoleOutput, line].slice(-CONSOLE_HISTORY_LIMIT) })),
   clearConsole: () => set({ consoleOutput: [] }),
   setFlashingProgress: (progress) => set({ flashingProgress: progress }),
   setFlashingStatus: (status) => set({ flashingStatus: status }),

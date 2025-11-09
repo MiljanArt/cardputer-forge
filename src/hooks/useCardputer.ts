@@ -10,6 +10,7 @@ export function useCardputer() {
   const setConfig = useDeviceStore((s) => s.setConfig);
   const setFetchingConfig = useDeviceStore((s) => s.setFetchingConfig);
   const setSavingConfig = useDeviceStore((s) => s.setSavingConfig);
+  const addConsoleOutput = useDeviceStore((s) => s.addConsoleOutput);
   useEffect(() => {
     const handleDisconnect = (e: Event) => {
       if (port && e.target === port) {
@@ -22,6 +23,49 @@ export function useCardputer() {
       navigator.serial?.removeEventListener('disconnect', handleDisconnect);
     };
   }, [port, setConnectionState]);
+  useEffect(() => {
+    if (!port?.readable) {
+      return;
+    }
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    const readLoop = async () => {
+      const textDecoder = new TextDecoder();
+      let buffer = '';
+      while (port.readable) {
+        try {
+          reader = port.readable.getReader();
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) {
+              break;
+            }
+            buffer += textDecoder.decode(value, { stream: true });
+            const lines = buffer.split('\r\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+              if (line.trim()) {
+                addConsoleOutput(line);
+              }
+            }
+          }
+        } catch (error) {
+          if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            console.error('Error reading from serial port:', error);
+            toast.error('Error reading from device.');
+          }
+        } finally {
+          if (reader) {
+            reader.releaseLock();
+            reader = undefined;
+          }
+        }
+      }
+    };
+    readLoop();
+    return () => {
+      reader?.cancel().catch(() => {});
+    };
+  }, [port, addConsoleOutput]);
   const connect = async () => {
     if (!('serial' in navigator)) {
       toast.error('Web Serial API not supported in this browser.');
@@ -57,14 +101,20 @@ export function useCardputer() {
     setConnectionState('disconnected');
     toast.info('Device disconnected.');
   };
-  const write = useCallback(async (data: Uint8Array) => {
+  const write = useCallback(async (data: string) => {
     if (!port?.writable) {
       toast.error("Device not writable.");
       return;
     }
-    const writer = port.writable.getWriter();
-    await writer.write(data);
-    writer.releaseLock();
+    try {
+      const writer = port.writable.getWriter();
+      const encodedData = new TextEncoder().encode(data + '\r\n');
+      await writer.write(encodedData);
+      writer.releaseLock();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to send command: ${errorMessage}`);
+    }
   }, [port]);
   const flashFirmware = async (firmwareData: ArrayBuffer) => {
     if (!port?.writable) {
@@ -109,7 +159,6 @@ export function useCardputer() {
     }
     setFetchingConfig(true);
     try {
-      // Simulate reading from device
       await new Promise(resolve => setTimeout(resolve, 1500));
       const mockConfig: DeviceConfig = {
         ssid: 'MyHomeNetwork',
@@ -133,11 +182,7 @@ export function useCardputer() {
     setSavingConfig(true);
     updateDeviceStatus('Configuring');
     try {
-      // Simulate writing to device
       await new Promise(resolve => setTimeout(resolve, 2000));
-      // In a real scenario, you would send the config object, likely as JSON
-      // const configString = JSON.stringify(config);
-      // await write(new TextEncoder().encode(configString));
       setConfig(config);
       toast.success("Configuration saved successfully!");
     } catch (error) {
