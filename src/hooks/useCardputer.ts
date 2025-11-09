@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useDeviceStore } from '@/store/deviceStore';
+import { useDeviceStore, DeviceConfig } from '@/store/deviceStore';
 import { toast } from 'sonner';
 export function useCardputer() {
   const setConnectionState = useDeviceStore((s) => s.setConnectionState);
@@ -7,9 +7,11 @@ export function useCardputer() {
   const setFlashingProgress = useDeviceStore((s) => s.setFlashingProgress);
   const setFlashingStatus = useDeviceStore((s) => s.setFlashingStatus);
   const updateDeviceStatus = useDeviceStore((s) => s.updateDeviceStatus);
+  const setConfig = useDeviceStore((s) => s.setConfig);
+  const setFetchingConfig = useDeviceStore((s) => s.setFetchingConfig);
+  const setSavingConfig = useDeviceStore((s) => s.setSavingConfig);
   useEffect(() => {
     const handleDisconnect = (e: Event) => {
-      // Check if the disconnected port is the one we are connected to
       if (port && e.target === port) {
         toast.warning('Device disconnected.');
         setConnectionState('disconnected');
@@ -47,7 +49,6 @@ export function useCardputer() {
   const disconnect = async () => {
     if (port) {
       try {
-        // In a real app, you'd cancel any ongoing readers/writers here
         await port.close();
       } catch (error) {
         console.error("Error closing port:", error);
@@ -74,7 +75,7 @@ export function useCardputer() {
     setFlashingProgress(0);
     setFlashingStatus('Starting flash...');
     try {
-      const chunkSize = 1024; // 1KB chunks
+      const chunkSize = 1024;
       const totalChunks = Math.ceil(firmwareData.byteLength / chunkSize);
       const writer = port.writable.getWriter();
       for (let i = 0; i < totalChunks; i++) {
@@ -85,12 +86,11 @@ export function useCardputer() {
         const progress = Math.round(((i + 1) / totalChunks) * 100);
         setFlashingProgress(progress);
         setFlashingStatus(`Writing chunk ${i + 1} of ${totalChunks}...`);
-        // A small delay to allow UI to update and prevent overwhelming the device
-        await new Promise(resolve => setTimeout(resolve, 10)); 
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
       writer.releaseLock();
       setFlashingStatus('Flash complete! Verifying...');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate verification
+      await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success('Firmware flashed successfully!');
       setFlashingStatus('Successfully flashed!');
     } catch (error) {
@@ -102,5 +102,51 @@ export function useCardputer() {
       setFlashingProgress(0);
     }
   };
-  return { connect, disconnect, write, flashFirmware };
+  const readConfig = useCallback(async () => {
+    if (!port) {
+      toast.error("Device not connected.");
+      return;
+    }
+    setFetchingConfig(true);
+    try {
+      // Simulate reading from device
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const mockConfig: DeviceConfig = {
+        ssid: 'MyHomeNetwork',
+        autoBrightness: true,
+        brightnessLevel: 'medium',
+      };
+      setConfig(mockConfig);
+      toast.success("Configuration loaded from device.");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to read config: ${errorMessage}`);
+    } finally {
+      setFetchingConfig(false);
+    }
+  }, [port, setConfig, setFetchingConfig]);
+  const writeConfig = useCallback(async (config: DeviceConfig) => {
+    if (!port?.writable) {
+      toast.error("Device not connected or not writable.");
+      return;
+    }
+    setSavingConfig(true);
+    updateDeviceStatus('Configuring');
+    try {
+      // Simulate writing to device
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      // In a real scenario, you would send the config object, likely as JSON
+      // const configString = JSON.stringify(config);
+      // await write(new TextEncoder().encode(configString));
+      setConfig(config);
+      toast.success("Configuration saved successfully!");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to save config: ${errorMessage}`);
+    } finally {
+      setSavingConfig(false);
+      updateDeviceStatus('Idle');
+    }
+  }, [port, setConfig, setSavingConfig, updateDeviceStatus]);
+  return { connect, disconnect, write, flashFirmware, readConfig, writeConfig };
 }

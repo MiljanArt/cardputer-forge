@@ -11,6 +11,11 @@ export interface DeviceInfo {
   platform: string;
   status: 'Idle' | 'Flashing' | 'Configuring';
 }
+export interface DeviceConfig {
+  ssid: string;
+  autoBrightness: boolean;
+  brightnessLevel: 'low' | 'medium' | 'high';
+}
 export interface DeviceState {
   isSupported: boolean;
   isConnected: boolean;
@@ -20,6 +25,9 @@ export interface DeviceState {
   consoleOutput: string[];
   flashingProgress: number;
   flashingStatus: string;
+  config: DeviceConfig | null;
+  isFetchingConfig: boolean;
+  isSavingConfig: boolean;
 }
 export interface DeviceActions {
   setIsSupported: (isSupported: boolean) => void;
@@ -30,6 +38,9 @@ export interface DeviceActions {
   setFlashingProgress: (progress: number) => void;
   setFlashingStatus: (status: string) => void;
   updateDeviceStatus: (status: DeviceInfo['status']) => void;
+  setConfig: (config: DeviceConfig | null) => void;
+  setFetchingConfig: (isFetching: boolean) => void;
+  setSavingConfig: (isSaving: boolean) => void;
 }
 export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => ({
   isSupported: 'serial' in navigator,
@@ -40,6 +51,9 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => 
   consoleOutput: [],
   flashingProgress: 0,
   flashingStatus: 'Ready to flash.',
+  config: null,
+  isFetchingConfig: false,
+  isSavingConfig: false,
   setIsSupported: (isSupported) => set({ isSupported }),
   setConnectionState: (state, port = null) => {
     switch (state) {
@@ -60,7 +74,7 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => 
         });
         break;
       case 'disconnected':
-        set({ isConnecting: false, isConnected: false, port: null, deviceInfo: null });
+        set({ isConnecting: false, isConnected: false, port: null, deviceInfo: null, config: null });
         break;
     }
   },
@@ -75,4 +89,7 @@ export const useDeviceStore = create<DeviceState & DeviceActions>((set, get) => 
       set({ deviceInfo: { ...deviceInfo, status } });
     }
   },
+  setConfig: (config) => set({ config }),
+  setFetchingConfig: (isFetching) => set({ isFetchingConfig: isFetching }),
+  setSavingConfig: (isSaving) => set({ isSavingConfig: isSaving }),
 }));
