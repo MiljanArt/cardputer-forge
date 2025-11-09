@@ -1,6 +1,6 @@
 # Cardputer Forge
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/MiljanArt/cardputer-forge)
 
 Cardputer Forge is a sophisticated, modern web-based configuration interface for the Cardputer ADV platform. It empowers users to seamlessly connect to their device, install and update firmware and bootloaders, and fine-tune device parameters through an intuitive and visually stunning UI. The application leverages the Web Serial API for direct browser-to-device communication, eliminating the need for complex desktop software. The interface is designed to be a masterpiece of both form and function, providing a clear, guided experience for beginners while offering advanced tools like a serial console for power users.
 
@@ -81,7 +81,7 @@ This application is designed to be deployed on the Cloudflare network.
 
 Alternatively, you can deploy directly from your GitHub repository with a single click.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/MiljanArt/cardputer-forge)
 
 ## Browser Support
 
