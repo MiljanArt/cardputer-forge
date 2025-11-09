@@ -22,15 +22,9 @@ function ConfigSkeleton() {
     <div className="space-y-6">
       <div className="space-y-4">
         <Skeleton className="h-6 w-40" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full" />
-          </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-10 w-full" />
         </div>
       </div>
       <Separator />
@@ -100,15 +94,9 @@ export function ConfigurationEditor() {
             <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2"><Wifi className="h-5 w-5 text-primary" /> Wi-Fi Settings</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ssid">SSID</Label>
-                    <Input id="ssid" placeholder="Your Wi-Fi Name" value={formState.ssid} onChange={handleInputChange} disabled={!isConnected || isWorking} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" placeholder="********" disabled={!isConnected || isWorking} />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ssid">SSID</Label>
+                  <Input id="ssid" placeholder="Your Wi-Fi Name" value={formState.ssid} onChange={handleInputChange} disabled={!isConnected || isWorking} />
                 </div>
               </div>
               <Separator />

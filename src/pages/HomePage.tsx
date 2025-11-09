@@ -72,8 +72,8 @@ export function HomePage() {
     <>
       <div className="min-h-screen bg-slate-50 dark:bg-gray-900 font-sans text-foreground">
         <ThemeToggle className="fixed top-4 right-4" />
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-12 md:py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-8 md:py-10 lg:py-12">
             <AppHeader />
             <main>
               <AnimatePresence mode="wait">
